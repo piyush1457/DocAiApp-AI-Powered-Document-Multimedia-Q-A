@@ -34,4 +34,3 @@ class Chunk(Base):
 
     # Relationships
     file: Mapped[File] = relationship(back_populates="chunks")
-

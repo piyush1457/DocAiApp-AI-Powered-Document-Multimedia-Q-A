@@ -55,8 +55,6 @@ class TranscriptionService:
             ]
             duration = float(subprocess.check_output(cmd).decode().strip())
 
-
-
             # We use a loop to create overlapping chunks as ffmpeg's segment muxer doesn't natively support overlap easily for this use case
             num_chunks = math.ceil(duration / (chunk_duration_sec - overlap_sec))
 

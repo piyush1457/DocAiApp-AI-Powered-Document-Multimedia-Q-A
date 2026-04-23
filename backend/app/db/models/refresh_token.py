@@ -29,4 +29,3 @@ class RefreshToken(Base):
 
     # Relationships
     user: Mapped[User] = relationship(back_populates="refresh_tokens")
-

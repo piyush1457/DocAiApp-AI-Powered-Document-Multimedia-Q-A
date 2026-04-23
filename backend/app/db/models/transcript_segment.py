@@ -27,4 +27,3 @@ class TranscriptSegment(Base):
 
     # Relationships
     file: Mapped[File] = relationship(back_populates="transcript_segments")
-

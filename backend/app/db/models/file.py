@@ -60,4 +60,3 @@ class File(Base):
     transcript_segments: Mapped[List[TranscriptSegment]] = relationship(
         back_populates="file", cascade="all, delete-orphan"
     )
-
