@@ -19,10 +19,6 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from app.db.base import Base
-from app.db.models.user import User
-from app.db.models.file import File
-from app.db.models.chunk import Chunk
-from app.db.models.transcript_segment import TranscriptSegment
 
 target_metadata = Base.metadata
 
@@ -31,6 +27,7 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 from app.core.config import settings
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

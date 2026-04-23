@@ -23,8 +23,8 @@ jobs:
 
       - name: Python Linting (Ruff & Black)
         run: |
-          ruff check backend
-          black --check backend
+          ruff check backend/app
+          black --check backend/app
 
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
