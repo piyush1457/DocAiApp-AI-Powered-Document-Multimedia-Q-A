@@ -1,7 +1,7 @@
 import React from 'react';
-import { StreamMessage } from '../../hooks/useChatSSE';
+import { StreamMessage, Source } from '../../hooks/useChatSSE';
 import { TimestampChip } from '../ui/TimestampChip';
-import { cn } from '../ui/Button';
+import { cn } from '../../utils/cn';
 import { usePlayerStore } from '../../store/playerStore';
 
 interface ChatMessageProps {
@@ -43,7 +43,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     });
   };
 
-  const handleSourceClick = (source: any) => {
+  const handleSourceClick = (source: Source) => {
     if (source.page) {
       setSeekToTime(source.page);
     } else if (source.timestamp !== undefined) {

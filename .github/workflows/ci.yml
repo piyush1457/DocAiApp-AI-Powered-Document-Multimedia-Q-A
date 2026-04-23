@@ -49,9 +49,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
         ports:
           - 5432:5432
         options: >-
@@ -75,8 +75,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
-          enable-cache: true
-          cache-dependency-path: backend/pyproject.toml
+          enable-cache: false # Disable cache for now to avoid uv.lock error
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -86,15 +85,24 @@ jobs:
       - name: Install Dependencies
         run: |
           cd backend
-          uv pip install --system . pytest-cov
+          uv pip install --system . pytest-cov pytest-mock
 
       - name: Run Pytest with Coverage
         env:
-          DATABASE_URL: postgresql+asyncpg://user:password@localhost:5432/test_db
+          GEMINI_API_KEY: "test-key"
+          GROQ_API_KEY: "test-key"
+          OPENAI_API_KEY: "test-key"
+          JWT_SECRET_KEY: "test-secret-key-for-ci-only"
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          ENVIRONMENT: test
+          DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
           REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY: ${{ secrets.JWT_SECRET_KEY || 'test_secret_key_32_chars_long_minimum' }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'test_key' }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY || 'test_key' }}
         run: |
           cd backend
           pytest --cov=app --cov-report=xml --cov-fail-under=95

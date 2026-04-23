@@ -1,10 +1,10 @@
-import React, { useRef, useEffect, useState, useImperativeHandle, forwardRef, useMemo } from 'react';
+import React, { useRef, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { Play, Pause, Volume2, VolumeX, RotateCcw, RotateCw, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { Button } from '../ui/Button';
-import { cn } from '../ui/Button';
+import { cn } from '../../utils/cn';
 import { usePlayerStore } from '../../store/playerStore';
 
 // Initialize PDF.js worker
@@ -56,7 +56,9 @@ export const MediaPlayer = forwardRef<MediaPlayerHandle, MediaPlayerProps>(({ sr
         setPageNumber(Math.max(1, Math.min(seekToTime, numPages || Infinity)));
       } else if (activeRef.current) {
         activeRef.current.currentTime = seekToTime;
-        activeRef.current.play().catch(() => {});
+        activeRef.current.play().catch(() => {
+          // Playback interrupted or prevented by browser
+        });
         setIsPlaying(true);
       }
       clearSeekToTime();

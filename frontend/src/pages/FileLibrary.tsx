@@ -5,7 +5,7 @@ import { FileText, FileAudio, FileVideo, AlertCircle, MessageSquare, Trash2 } fr
 import { UploadZone } from '../components/upload/UploadZone';
 import { useFiles, useDeleteFile, FileData } from '../hooks/useFiles';
 import { Button } from '../components/ui/Button';
-import { cn } from '../components/ui/Button';
+import { cn } from '../utils/cn';
 
 const FileIcon = ({ type, className }: { type: string, className?: string }) => {
   const t = type?.toLowerCase();

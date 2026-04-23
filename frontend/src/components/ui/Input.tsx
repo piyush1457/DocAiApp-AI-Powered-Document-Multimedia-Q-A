@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from './Button';
+import { cn } from '../../utils/cn';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;

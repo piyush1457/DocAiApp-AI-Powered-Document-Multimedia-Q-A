@@ -1,7 +1,7 @@
-import re
-from typing import List, Dict, Optional, Any
-from dataclasses import dataclass, field
+from typing import List, Dict, Any
+from dataclasses import dataclass
 import tiktoken
+
 
 @dataclass
 class Chunk:
@@ -9,13 +9,14 @@ class Chunk:
     metadata: Dict[str, Any]
     token_count: int
 
+
 class RecursiveCharacterTextSplitter:
     def __init__(
         self,
         chunk_size: int = 800,
         chunk_overlap: int = 150,
         separators: List[str] = ["\n\n", "\n", " ", ""],
-        encoding_name: str = "cl100k_base"
+        encoding_name: str = "cl100k_base",
     ):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
@@ -33,7 +34,7 @@ class RecursiveCharacterTextSplitter:
         Implementation of recursive splitting logic.
         """
         final_chunks = []
-        
+
         # If text is small enough, return it
         if self._get_token_count(text) <= self.chunk_size:
             return [text]
@@ -47,9 +48,9 @@ class RecursiveCharacterTextSplitter:
                 break
             if s in text:
                 separator = s
-                new_separators = separators[i+1:]
+                new_separators = separators[i + 1 :]
                 break
-        
+
         # Split by separator
         if separator != "":
             splits = text.split(separator)
@@ -60,17 +61,17 @@ class RecursiveCharacterTextSplitter:
         # Merge splits into chunks
         current_chunk_parts = []
         current_token_count = 0
-        
+
         for split in splits:
             split_token_count = self._get_token_count(split)
-            
+
             if split_token_count > self.chunk_size:
                 # If a single split is too large, recurse on it
                 if current_chunk_parts:
                     final_chunks.append(separator.join(current_chunk_parts))
                     current_chunk_parts = []
                     current_token_count = 0
-                
+
                 recursive_chunks = self._recursive_split(split, new_separators)
                 final_chunks.extend(recursive_chunks)
                 continue
@@ -78,7 +79,7 @@ class RecursiveCharacterTextSplitter:
             if current_token_count + split_token_count > self.chunk_size:
                 # Current chunk is full
                 final_chunks.append(separator.join(current_chunk_parts))
-                
+
                 # Handle overlap
                 # This is a simplified overlap: we keep some parts from the end
                 overlap_parts = []
@@ -90,7 +91,7 @@ class RecursiveCharacterTextSplitter:
                         overlap_tokens += part_tokens
                     else:
                         break
-                
+
                 current_chunk_parts = overlap_parts + [split]
                 current_token_count = overlap_tokens + split_token_count
             else:
@@ -107,10 +108,6 @@ class RecursiveCharacterTextSplitter:
             return []
         texts = self.split_text(text)
         return [
-            Chunk(
-                text=t,
-                metadata=metadata,
-                token_count=self._get_token_count(t)
-            )
+            Chunk(text=t, metadata=metadata, token_count=self._get_token_count(t))
             for t in texts
         ]

@@ -32,21 +32,29 @@ class File(Base):
     __tablename__ = "files"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
     file_type: Mapped[FileType] = mapped_column(SQLEnum(FileType), nullable=False)
     storage_path: Mapped[str] = mapped_column(String(512), nullable=False)
     file_size: Mapped[int] = mapped_column(nullable=False)
-    
-    status: Mapped[FileStatus] = mapped_column(SQLEnum(FileStatus), default=FileStatus.uploading)
+
+    status: Mapped[FileStatus] = mapped_column(
+        SQLEnum(FileStatus), default=FileStatus.uploading
+    )
     error_message: Mapped[Optional[str]] = mapped_column(String(1024))
-    
+
     created_at: Mapped[timestamp]
     updated_at: Mapped[updated_timestamp]
 
     # Relationships
     owner: Mapped["User"] = relationship(back_populates="files")
-    chunks: Mapped[List["Chunk"]] = relationship(back_populates="file", cascade="all, delete-orphan")
-    transcript_segments: Mapped[List["TranscriptSegment"]] = relationship(back_populates="file", cascade="all, delete-orphan")
+    chunks: Mapped[List["Chunk"]] = relationship(
+        back_populates="file", cascade="all, delete-orphan"
+    )
+    transcript_segments: Mapped[List["TranscriptSegment"]] = relationship(
+        back_populates="file", cascade="all, delete-orphan"
+    )

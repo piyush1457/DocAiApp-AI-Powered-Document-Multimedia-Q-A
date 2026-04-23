@@ -109,6 +109,13 @@ async def client(db_session, test_user) -> AsyncGenerator[AsyncClient, None]:
             yield ac
     
     app.dependency_overrides.clear()
+    
+@pytest.fixture(autouse=True)
+def mock_external_apis(mocker):
+    mocker.patch("app.services.llm_service.groq_client.chat.completions.create")
+    mocker.patch("app.services.vector_service.genai.embed_content", 
+        return_value={"embedding": [0.1] * 768})
+    mocker.patch("app.services.transcription_service.groq_client.audio.transcriptions.create")
 
 @pytest.fixture
 def mock_openai(mocker):

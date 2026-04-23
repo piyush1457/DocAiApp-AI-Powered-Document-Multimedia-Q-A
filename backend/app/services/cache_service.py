@@ -7,6 +7,7 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class CacheService:
     def __init__(self):
         self.redis = redis.from_url(str(settings.REDIS_URL), decode_responses=True)
@@ -51,5 +52,6 @@ class CacheService:
     @staticmethod
     def hash_key(text: str) -> str:
         return hashlib.sha256(text.encode()).hexdigest()
+
 
 cache_service = CacheService()

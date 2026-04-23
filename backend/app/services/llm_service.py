@@ -34,15 +34,14 @@ Structure your response as a JSON array of objects, each with:
 
 logger = logging.getLogger(__name__)
 
+
 class LLMService:
     def __init__(self):
         self.client = Groq(api_key=settings.GROQ_API_KEY)
         self.model_id = "llama-3.3-70b-versatile"
 
     async def get_chat_response_stream(
-        self, 
-        messages: List[Dict[str, str]], 
-        context_chunks: List[Dict[str, Any]]
+        self, messages: List[Dict[str, str]], context_chunks: List[Dict[str, Any]]
     ) -> AsyncGenerator[str, None]:
         """
         Streams Groq response as SSE tokens and metadata.
@@ -55,12 +54,15 @@ class LLMService:
                 source = f"Page {chunk['page_number']}"
             elif chunk.get("start_time") is not None:
                 source = f"{int(chunk['start_time'])}s"
-            
+
             context_str += f"\n[{source}]: {chunk['text_preview']}\n"
 
         # 2. Build Groq messages
         groq_messages = [
-            {"role": "system", "content": f"{SYSTEM_PROMPT_QA}\n\nCONTEXT:\n{context_str}"}
+            {
+                "role": "system",
+                "content": f"{SYSTEM_PROMPT_QA}\n\nCONTEXT:\n{context_str}",
+            }
         ]
         groq_messages.extend(messages)
 
@@ -73,9 +75,9 @@ class LLMService:
                     messages=groq_messages,
                     temperature=0.2,
                     max_tokens=1024,
-                    stream=True
+                    stream=True,
                 )
-            
+
             completion = await asyncio.to_thread(groq_stream)
 
             for chunk in completion:
@@ -87,11 +89,13 @@ class LLMService:
             # 4. Final metadata event
             sources = []
             for c in context_chunks:
-                sources.append({
-                    "page_number": c.get("page_number"),
-                    "start_time": c.get("start_time"),
-                    "end_time": c.get("end_time")
-                })
+                sources.append(
+                    {
+                        "page_number": c.get("page_number"),
+                        "start_time": c.get("start_time"),
+                        "end_time": c.get("end_time"),
+                    }
+                )
             yield f"data: {json.dumps({'type': 'metadata', 'sources': sources})}\n\n"
 
         except Exception as e:
@@ -102,10 +106,13 @@ class LLMService:
         """
         Generates a summary using Groq.
         """
-        full_text = "\n".join(chunk_texts)[:15000] # Groq has smaller window than Gemini
+        full_text = "\n".join(chunk_texts)[
+            :15000
+        ]  # Groq has smaller window than Gemini
         prompt = f"{SYSTEM_PROMPT_SUMMARY}\n\nDOCUMENT CONTENT:\n{full_text}"
-        
+
         try:
+
             def groq_call():
                 return self.client.chat.completions.create(
                     model=self.model_id,
@@ -113,9 +120,9 @@ class LLMService:
                     response_format={"type": "json_object"},
                     temperature=0.2,
                     max_tokens=1000,
-                    stream=False
+                    stream=False,
                 )
-            
+
             response = await asyncio.to_thread(groq_call)
             return json.loads(response.choices[0].message.content)
         except Exception as e:
@@ -127,8 +134,9 @@ class LLMService:
         Segments a transcript into logical chapters using Groq.
         """
         prompt = f"{SYSTEM_PROMPT_CHAPTERS}\n\nTRANSCRIPT:\n{transcript[:15000]}"
-        
+
         try:
+
             def groq_call():
                 return self.client.chat.completions.create(
                     model=self.model_id,
@@ -136,9 +144,9 @@ class LLMService:
                     response_format={"type": "json_object"},
                     temperature=0.2,
                     max_tokens=1000,
-                    stream=False
+                    stream=False,
                 )
-            
+
             response = await asyncio.to_thread(groq_call)
             data = json.loads(response.choices[0].message.content)
             # If Groq returns a nested object, extract the list
@@ -150,5 +158,6 @@ class LLMService:
         except Exception as e:
             logger.error(f"Groq Chapters Error: {str(e)}")
             raise LLMError(f"Failed to generate chapters: {str(e)}")
+
 
 llm_service = LLMService()

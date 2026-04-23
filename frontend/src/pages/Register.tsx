@@ -8,10 +8,7 @@ import {
   ShieldCheck, 
   ChevronRight,
   Loader2,
-  FileText,
-  AudioLines,
-  Video,
-  Clock
+  FileText
 } from 'lucide-react';
 import { api } from '../api/axios';
 import { useAuthStore } from '../store/useAuthStore';

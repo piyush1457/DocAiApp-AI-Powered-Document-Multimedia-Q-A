@@ -3,20 +3,20 @@
  */
 
 import apiClient from './client';
-import { File, ChatMessage, ChatResponse, SummaryResponse } from '../types';
+import { File as FileData, ChatMessage, ChatResponse, SummaryResponse } from '../types';
 
 export const filesApi = {
-  list: async (): Promise<File[]> => {
+  list: async (): Promise<FileData[]> => {
     const { data } = await apiClient.get('/files/');
     return data;
   },
 
-  get: async (id: string): Promise<File> => {
+  get: async (id: string): Promise<FileData> => {
     const { data } = await apiClient.get(`/files/${id}`);
     return data;
   },
 
-  upload: async (file: File | any): Promise<File> => {
+  upload: async (file: Blob): Promise<FileData> => {
     const formData = new FormData();
     formData.append('file', file);
     const { data } = await apiClient.post('/upload/', formData, {

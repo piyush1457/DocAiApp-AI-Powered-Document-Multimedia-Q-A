@@ -37,31 +37,12 @@ app.add_middleware(
 )
 
 # Include Routers
-app.include_router(
-    auth.router, 
-    prefix="/api/v1/auth", 
-    tags=["auth"]
-)
-app.include_router(
-    upload.router, 
-    prefix="/api/v1", 
-    tags=["upload"]
-)
-app.include_router(
-    chat.router, 
-    prefix="/api/v1/chat", 
-    tags=["chat"]
-)
-app.include_router(
-    files.router, 
-    prefix="/api/v1/files", 
-    tags=["files"]
-)
-app.include_router(
-    summary.router, 
-    prefix="/api/v1/summary", 
-    tags=["summary"]
-)
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(upload.router, prefix="/api/v1", tags=["upload"])
+app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
+app.include_router(files.router, prefix="/api/v1/files", tags=["files"])
+app.include_router(summary.router, prefix="/api/v1/summary", tags=["summary"])
+
 
 @app.get("/health")
 async def health_check():
@@ -69,6 +50,7 @@ async def health_check():
     Dedicated health check endpoint for Docker/K8s.
     """
     return {"status": "healthy", "timestamp": settings.VERSION}
+
 
 @app.get("/")
 async def root():
@@ -78,5 +60,5 @@ async def root():
     return {
         "app": settings.PROJECT_NAME,
         "version": settings.VERSION,
-        "status": "online"
+        "status": "online",
     }

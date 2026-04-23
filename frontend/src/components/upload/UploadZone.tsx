@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, File, AlertCircle, Loader2 } from 'lucide-react';
+import { UploadCloud, File, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '../ui/Button';
-import { cn } from '../ui/Button';
+import { cn } from '../../utils/cn';
 import { api } from '../../api/axios';
 
 interface UploadZoneProps {

@@ -8,12 +8,15 @@ from datetime import datetime
 from pydantic import BaseModel
 from app.db.models.file import FileType, FileStatus
 
+
 class FileBase(BaseModel):
     filename: str
     file_type: FileType
 
+
 class FileCreate(FileBase):
     pass
+
 
 class File(FileBase):
     id: uuid.UUID
@@ -28,13 +31,16 @@ class File(FileBase):
     class Config:
         from_attributes = True
 
+
 class ChatMessage(BaseModel):
-    role: str # 'user' or 'assistant'
+    role: str  # 'user' or 'assistant'
     content: str
+
 
 class ChatRequest(BaseModel):
     file_id: uuid.UUID
     messages: List[ChatMessage]
+
 
 class ChatResponse(BaseModel):
     answer: str

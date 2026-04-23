@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from './Button';
+import { cn } from '../../utils/cn';
 import { usePlayerStore } from '../../store/playerStore';
 
 interface TimestampChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

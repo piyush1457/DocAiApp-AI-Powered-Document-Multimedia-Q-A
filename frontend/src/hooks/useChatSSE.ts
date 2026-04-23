@@ -1,13 +1,15 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 
+export interface Source {
+  text: string;
+  page?: number;
+  timestamp?: number;
+  score?: number;
+}
+
 interface MessageMetadata {
-  sources?: Array<{
-    text: string;
-    page?: number;
-    timestamp?: number;
-    score?: number;
-  }>;
+  sources?: Source[];
 }
 
 export interface StreamMessage {
@@ -21,7 +23,6 @@ export const useChatSSE = (fileId: string) => {
   const [messages, setMessages] = useState<StreamMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const sendMessage = useCallback(async (question: string, history: { role: string, content: string }[]) => {
@@ -68,9 +69,13 @@ export const useChatSSE = (fileId: string) => {
       let accumulatedContent = '';
       let finalMetadata: MessageMetadata | undefined;
 
-      while (true) {
+      let isDone = false;
+      while (!isDone) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          isDone = true;
+          break;
+        }
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');

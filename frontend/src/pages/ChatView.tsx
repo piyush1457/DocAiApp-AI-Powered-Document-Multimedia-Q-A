@@ -13,8 +13,8 @@ import { Input } from '../components/ui/Input';
 
 export const ChatView = () => {
   const { fileId } = useParams<{ fileId: string }>();
-  const { data: file, isLoading: isLoadingFile } = useFile(fileId!);
-  const { messages, sendMessage, isStreaming, error } = useChatSSE(fileId!);
+  const { data: file, isLoading: isLoadingFile } = useFile(fileId ?? '');
+  const { messages, sendMessage, isStreaming, error } = useChatSSE(fileId ?? '');
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<MediaPlayerHandle>(null);
@@ -39,14 +39,15 @@ export const ChatView = () => {
   const [mediaUrl, setMediaUrl] = useState<string>('');
 
   useEffect(() => {
+    let currentUrl = '';
     const fetchMedia = async () => {
       if (!file) return;
       try {
         const response = await api.get(`/files/${file.id}/content`, {
           responseType: 'blob'
         });
-        const url = URL.createObjectURL(response.data);
-        setMediaUrl(url);
+        currentUrl = URL.createObjectURL(response.data);
+        setMediaUrl(currentUrl);
       } catch (err) {
         console.error('Failed to fetch media content', err);
       }
@@ -55,7 +56,7 @@ export const ChatView = () => {
     fetchMedia();
 
     return () => {
-      if (mediaUrl) URL.revokeObjectURL(mediaUrl);
+      if (currentUrl) URL.revokeObjectURL(currentUrl);
     };
   }, [file]);
 
@@ -83,7 +84,7 @@ export const ChatView = () => {
   const fileType = (file?.file_type || '').toLowerCase();
   const isPDF = fileType === 'pdf';
   const isVideo = ['mp4', 'webm', 'mov'].includes(fileType);
-  const isAudio = ['mp3', 'wav', 'm4a', 'audio'].includes(fileType);
+  // isAudio not used for now as it maps to 'audio' by default in ternary below
 
 
 

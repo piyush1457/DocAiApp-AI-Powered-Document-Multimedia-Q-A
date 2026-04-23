@@ -4,12 +4,14 @@ Pydantic schemas for User domain.
 
 import uuid
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, field_validator
+
 
 class UserBase(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
     is_active: Optional[bool] = True
+
 
 class UserCreate(UserBase):
     password: str
@@ -27,8 +29,10 @@ class UserCreate(UserBase):
             raise ValueError("Password must contain at least one special character")
         return v
 
+
 class UserUpdate(UserBase):
     password: Optional[str] = None
+
 
 class User(UserBase):
     id: uuid.UUID
@@ -37,10 +41,12 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str
+
 
 class TokenPayload(BaseModel):
     sub: Optional[str] = None

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/axios';
 import { ChevronDown, ChevronUp, FileText, Loader2, List, Clock } from 'lucide-react';
-import { cn } from '../ui/Button';
 import { usePlayerStore } from '../../store/playerStore';
 
 interface ChapterMarker {

@@ -1,10 +1,12 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+
 class ChapterMarker(BaseModel):
     title: str
     start_time: float
     end_time: float
+
 
 class SummaryResponse(BaseModel):
     summary: str
