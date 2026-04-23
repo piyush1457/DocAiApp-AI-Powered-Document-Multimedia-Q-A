@@ -57,8 +57,7 @@ async def test_summary_caching_flow(client, auth_headers, db_session, test_user)
             AsyncMock(return_value=summary_data),
         ) as mock_sum,
         patch("app.api.v1.routes.summary.redis_client", fake_redis),
-    ):  # To avoid real redis
-
+    ):
         # 1. First request -> Calls LLM
         response = await client.get(
             f"/docaiapp/v1/summary/{file_id}", headers=auth_headers

@@ -1,4 +1,5 @@
 import os
+import uuid
 import faiss
 import numpy as np
 import json
@@ -73,7 +74,9 @@ class FAISSVectorStore:
             # Fetch all chunks for this user (not just file_id, or maybe just file_id?
             # The prompt says "if no chunks exist for the file_id", but the path has user_id.
             # Usually we group by user).
-            stmt = select(Chunk).where(Chunk.file_id == file_id)
+            # Convert string file_id to UUID for the DB query to avoid AttributeError in some environments
+            file_uuid = uuid.UUID(file_id) if isinstance(file_id, str) else file_id
+            stmt = select(Chunk).where(Chunk.file_id == file_uuid)
             result = await db.execute(stmt)
             chunks = result.scalars().all()
 

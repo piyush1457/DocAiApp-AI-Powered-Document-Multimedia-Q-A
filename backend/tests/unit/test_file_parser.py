@@ -48,13 +48,14 @@ def test_parse_pdf_fallback_to_pymupdf():
 def test_mime_type_validation_rejects_invalid():
     """Test that invalid MIME types/extensions are rejected."""
     invalid_ext = "exe"
-    assert invalid_ext not in ALLOWED_EXTENSIONS
+    # ALLOWED_EXTENSIONS keys are uppercase (PDF, MP3, etc.)
+    assert invalid_ext.upper() not in ALLOWED_EXTENSIONS
 
 
 def test_mime_type_validation_accepts_valid():
     """Test that valid MIME types are accepted."""
-    assert "pdf" in ALLOWED_EXTENSIONS
-    assert "mp3" in ALLOWED_EXTENSIONS
+    assert "PDF" in ALLOWED_EXTENSIONS
+    assert "MP3" in ALLOWED_EXTENSIONS
 
 
 def test_file_size_limit_enforcement():

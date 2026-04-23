@@ -31,5 +31,5 @@ def test_call_whisper_failure():
             side_effect=Exception("API error"),
         ),
     ):
-        with pytest.raises(TranscriptionError, match="OpenAI transcription failed"):
+        with pytest.raises(TranscriptionError, match="Groq transcription failed"):
             service._call_whisper("test.mp3")

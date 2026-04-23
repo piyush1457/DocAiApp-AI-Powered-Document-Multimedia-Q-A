@@ -37,11 +37,12 @@ app.add_middleware(
 )
 
 # Include Routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-app.include_router(upload.router, prefix="/api/v1", tags=["upload"])
-app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
-app.include_router(files.router, prefix="/api/v1/files", tags=["files"])
-app.include_router(summary.router, prefix="/api/v1/summary", tags=["summary"])
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+app.include_router(upload.router, prefix=f"{settings.API_V1_STR}/upload", tags=["upload"])
+app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["chat"])
+app.include_router(files.router, prefix=f"{settings.API_V1_STR}/files", tags=["files"])
+app.include_router(summary.router, prefix=f"{settings.API_V1_STR}/summary", tags=["summary"])
+
 
 
 @app.get("/health")
