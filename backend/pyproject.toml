@@ -48,6 +48,7 @@ python_files = "test_*.py"
 addopts = "--cov=app --cov-report=term-missing --cov-report=html:coverage_html --cov-fail-under=40"
 
 
+
 [tool.coverage.run]
 source = ["app"]
 omit = ["tests/*", "alembic/*", "app/main.py"]
