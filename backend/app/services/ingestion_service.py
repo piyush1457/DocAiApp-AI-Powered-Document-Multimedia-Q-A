@@ -31,7 +31,7 @@ class IngestionService:
             return
 
         try:
-            file.status = FileStatus.processing
+            file.status = FileStatus.PROCESSING
             await self.db.commit()
 
             chunks_to_create = []
@@ -81,12 +81,13 @@ class IngestionService:
             # Add to Vector Store
             await self.vector_store.add_chunks(db_chunks, str(file.user_id))
 
-            file.status = FileStatus.ready
+            file.status = FileStatus.READY
             await self.db.commit()
 
         except Exception as e:
             await self.db.rollback()
-            file.status = FileStatus.failed
+            file.status = FileStatus.FAILED
             file.error_message = str(e)
             await self.db.commit()
+
             raise IngestionError(f"Ingestion failed for file {file_id}: {str(e)}")

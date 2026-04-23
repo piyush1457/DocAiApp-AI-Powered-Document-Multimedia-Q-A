@@ -124,7 +124,8 @@ async def refresh_token(
     token_hash = hash_refresh_token(refresh_token)
     stmt = select(RefreshToken).where(
         (RefreshToken.token_hash == token_hash)
-        & (RefreshToken.is_revoked == False)
+        & (not RefreshToken.is_revoked)
+
         & (RefreshToken.expires_at > datetime.utcnow())
     )
     result = await db.execute(stmt)

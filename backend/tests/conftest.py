@@ -124,14 +124,24 @@ async def client(db_session, test_user) -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture(autouse=True)
 def mock_external_apis(mocker):
-    mocker.patch("app.services.llm_service.groq_client.chat.completions.create")
+    # Mock Groq client in LLMService
+    mock_groq = mocker.patch("app.services.llm_service.Groq")
+    mock_instance = mock_groq.return_value
+    mock_instance.chat.completions.create.return_value = mocker.Mock()
+
+    # Mock Groq client in TranscriptionService
+    mocker.patch("app.services.transcription_service.client")
+
     mocker.patch(
-        "app.services.vector_service.genai.embed_content",
-        return_value={"embedding": [0.1] * 768},
+        "app.services.vector_service.FAISSVectorStore._get_embeddings",
+        return_value=[[0.1] * 768],
     )
     mocker.patch(
-        "app.services.transcription_service.groq_client.audio.transcriptions.create"
+        "app.services.vector_service.genai.Client",
     )
+
+
+
 
 
 @pytest.fixture

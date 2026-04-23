@@ -1,9 +1,14 @@
+from __future__ import annotations
 import uuid
-from typing import List
+from typing import List, TYPE_CHECKING
 from sqlalchemy import String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, timestamp, updated_timestamp
+
+if TYPE_CHECKING:
+    from .file import File
+    from .refresh_token import RefreshToken
 
 
 class User(Base):
@@ -21,9 +26,10 @@ class User(Base):
     updated_at: Mapped[updated_timestamp]
 
     # Relationships
-    files: Mapped[List["File"]] = relationship(
+    files: Mapped[List[File]] = relationship(
         back_populates="owner", cascade="all, delete-orphan"
     )
-    refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
+    refresh_tokens: Mapped[List[RefreshToken]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+

@@ -1,15 +1,17 @@
-"""
-File model for tracking uploaded documents and multimedia files.
-"""
-
+from __future__ import annotations
 import uuid
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 from enum import Enum
 
 from sqlalchemy import String, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, timestamp, updated_timestamp
+
+if TYPE_CHECKING:
+    from .user import User
+    from .chunk import Chunk
+    from .transcript_segment import TranscriptSegment
 
 
 class FileType(str, Enum):
@@ -22,10 +24,10 @@ class FileType(str, Enum):
 
 
 class FileStatus(str, Enum):
-    uploading = "uploading"
-    processing = "processing"
-    ready = "ready"
-    failed = "failed"
+    UPLOADING = "uploading"
+    PROCESSING = "processing"
+    READY = "ready"
+    FAILED = "failed"
 
 
 class File(Base):
@@ -43,7 +45,7 @@ class File(Base):
     file_size: Mapped[int] = mapped_column(nullable=False)
 
     status: Mapped[FileStatus] = mapped_column(
-        SQLEnum(FileStatus), default=FileStatus.uploading
+        SQLEnum(FileStatus), default=FileStatus.UPLOADING
     )
     error_message: Mapped[Optional[str]] = mapped_column(String(1024))
 
@@ -51,10 +53,11 @@ class File(Base):
     updated_at: Mapped[updated_timestamp]
 
     # Relationships
-    owner: Mapped["User"] = relationship(back_populates="files")
-    chunks: Mapped[List["Chunk"]] = relationship(
+    owner: Mapped[User] = relationship(back_populates="files")
+    chunks: Mapped[List[Chunk]] = relationship(
         back_populates="file", cascade="all, delete-orphan"
     )
-    transcript_segments: Mapped[List["TranscriptSegment"]] = relationship(
+    transcript_segments: Mapped[List[TranscriptSegment]] = relationship(
         back_populates="file", cascade="all, delete-orphan"
     )
+

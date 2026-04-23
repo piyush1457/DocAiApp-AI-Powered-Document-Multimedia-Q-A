@@ -1,12 +1,13 @@
-"""
-TranscriptSegment model for storing video/audio transcriptions with timestamps.
-"""
-
+from __future__ import annotations
 import uuid
+from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, Text, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, timestamp
+
+if TYPE_CHECKING:
+    from .file import File
 
 
 class TranscriptSegment(Base):
@@ -25,4 +26,5 @@ class TranscriptSegment(Base):
     created_at: Mapped[timestamp]
 
     # Relationships
-    file: Mapped["File"] = relationship(back_populates="transcript_segments")
+    file: Mapped[File] = relationship(back_populates="transcript_segments")
+

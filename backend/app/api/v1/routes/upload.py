@@ -96,7 +96,8 @@ async def upload_file(
         file_type=FileType(ext),
         storage_path=storage_path,
         file_size=file_size,
-        status=FileStatus.uploading,
+        status=FileStatus.UPLOADING,
+
     )
     db.add(db_file)
     await db.commit()

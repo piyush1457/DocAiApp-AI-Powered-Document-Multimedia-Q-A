@@ -1,13 +1,13 @@
-"""
-Chunk model for storing document segments and their vector IDs.
-"""
-
+from __future__ import annotations
 import uuid
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from sqlalchemy import ForeignKey, Text, Integer, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, timestamp
+
+if TYPE_CHECKING:
+    from .file import File
 
 
 class Chunk(Base):
@@ -33,4 +33,5 @@ class Chunk(Base):
     created_at: Mapped[timestamp]
 
     # Relationships
-    file: Mapped["File"] = relationship(back_populates="chunks")
+    file: Mapped[File] = relationship(back_populates="chunks")
+
