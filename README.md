@@ -2,11 +2,7 @@
 
 A production-grade full-stack application that leverages Retrieval-Augmented Generation (RAG) to enable interactive Q&A over documents (PDF, DOCX) and multimedia (Video, Audio) with precise timestamp referencing.
 
-![CI Status](https://github.com/yourusername/docaiapp/actions/workflows/ci.yml/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
-![Docker](https://img.shields.io/badge/docker-enabled-blue)
-![Python Version](https://img.shields.io/badge/python-3.11-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+Demonstartion video: https://www.youtube.com/watch?v=vvXHM4UJugg
 
 ## ✨ Features
 

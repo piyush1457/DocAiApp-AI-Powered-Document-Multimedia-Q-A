@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import uuid
 import hashlib
 from fastapi import APIRouter, Depends, HTTPException, status, Body
@@ -54,7 +54,7 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     db_refresh = RefreshToken(
         user_id=db_user.id,
         token_hash=hash_refresh_token(refresh_token),
-        expires_at=datetime.utcnow()
+        expires_at=datetime.now(UTC)
         + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
     db.add(db_refresh)
@@ -95,7 +95,7 @@ async def login(
     db_refresh = RefreshToken(
         user_id=user.id,
         token_hash=hash_refresh_token(refresh_token),
-        expires_at=datetime.utcnow()
+        expires_at=datetime.now(UTC)
         + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
     db.add(db_refresh)
@@ -125,7 +125,7 @@ async def refresh_token(
     stmt = select(RefreshToken).where(
         (RefreshToken.token_hash == token_hash)
         & (RefreshToken.is_revoked == False)
-        & (RefreshToken.expires_at > datetime.utcnow())
+        & (RefreshToken.expires_at > datetime.now(UTC))
     )
     result = await db.execute(stmt)
     db_token = result.scalar_one_or_none()
@@ -144,7 +144,7 @@ async def refresh_token(
     new_db_refresh = RefreshToken(
         user_id=uuid.UUID(user_id),
         token_hash=hash_refresh_token(new_refresh),
-        expires_at=datetime.utcnow()
+        expires_at=datetime.now(UTC)
         + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
     db.add(new_db_refresh)
