@@ -4,7 +4,7 @@ Uses Pydantic BaseSettings to load environment variables and provide type-safe a
 """
 
 from typing import List
-from pydantic import Field, RedisDsn, field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
