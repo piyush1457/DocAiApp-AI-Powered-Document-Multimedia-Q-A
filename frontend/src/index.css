@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-textPrimary antialiased selection:bg-accent/30 selection:text-accent;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  ::placeholder {
+    @apply text-textSecondary/50;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.08];
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-white/50;
+  }
+}
+
+/* Custom Scrollbar for dark theme minimal UI */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full border-2 border-solid border-background;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-textSecondary;
+}

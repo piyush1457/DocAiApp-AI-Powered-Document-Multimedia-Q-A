@@ -1,0 +1,38 @@
+name: CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # This is a template for Railway.
+      # Requires RAILWAY_TOKEN to be set in GitHub Secrets.
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          echo "Deploying to Railway..."
+          # railway up --detach --service docai-backend
+          # railway up --detach --service docai-frontend
+          echo "Deployment command triggered (commented out in template)"
+
+      # Alternative: Render Deployment
+      # Requires RENDER_DEPLOY_HOOK_URL to be set in GitHub Secrets.
+      - name: Deploy to Render
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl -X POST "$RENDER_DEPLOY_HOOK_URL"

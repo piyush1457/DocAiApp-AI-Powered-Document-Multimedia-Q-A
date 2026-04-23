@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+backend/venv/
+backend/__pycache__/
+.pytest_cache/
+.coverage
+coverage_html/
+*.pyc
+
+# Local files
+.env
+tmp/
+backend/faiss_indexes/
+backend/*.log
+backend/coverage.txt
+backend/coverage_utf8.txt
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+frontend/dist/
