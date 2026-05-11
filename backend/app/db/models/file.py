@@ -45,7 +45,8 @@ class File(Base):
     file_size: Mapped[int] = mapped_column(nullable=False)
 
     status: Mapped[FileStatus] = mapped_column(
-        SQLEnum(FileStatus), default=FileStatus.UPLOADING
+        SQLEnum(FileStatus, values_callable=lambda x: [e.value for e in x]), 
+        default=FileStatus.UPLOADING
     )
     error_message: Mapped[Optional[str]] = mapped_column(String(1024))
 

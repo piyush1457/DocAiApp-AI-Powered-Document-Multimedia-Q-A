@@ -2,8 +2,8 @@
  * TypeScript interfaces mirroring backend schemas.
  */
 
-export type FileType = 'pdf' | 'docx' | 'video' | 'audio';
-export type FileStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type FileType = 'PDF' | 'MP3' | 'MP4' | 'WAV' | 'M4A' | 'WEBM';
+export type FileStatus = 'uploading' | 'processing' | 'ready' | 'failed';
 
 export interface User {
   id: string;

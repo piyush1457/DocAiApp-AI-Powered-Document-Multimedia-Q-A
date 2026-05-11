@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = Field("DocAiApp", description="The name of the project")
     VERSION: str = Field("0.1.0", description="The version of the application")
     DEBUG: bool = Field(False, description="Debug mode flag")
-    API_V1_STR: str = "/docaiapp/v1"
+    API_V1_STR: str = "/api/v1"
 
     # Security
     SECRET_KEY: str = Field("dev_secret_key_change_me", description="Secret key for JWT signing")

@@ -33,7 +33,7 @@ upload_limiter = RateLimiter(max_calls=10, period=3600)
 
 
 @router.post(
-    "/upload",
+    "",
     status_code=status.HTTP_202_ACCEPTED,
     dependencies=[Depends(upload_limiter)],
 )
