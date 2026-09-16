@@ -55,51 +55,61 @@ class RateLimiter:
     def __init__(self, max_calls: int, period: int):
         self.max_calls = max_calls
         self.period = period
-        self.redis = redis.from_url(str(settings.REDIS_URL), decode_responses=True)
+        try:
+            self.redis = redis.from_url(str(settings.REDIS_URL), decode_responses=True, socket_connect_timeout=2, socket_timeout=2)
+        except Exception as e:
+            logger.warning(f"RateLimiter redis init failed, rate limiting disabled: {e}")
+            self.redis = None
 
     async def __call__(
         self, request: Request, current_user: User = Depends(get_current_user)
     ):
-        if settings.DEBUG:
+        if settings.DEBUG or self.redis is None:
             return True
-        user_id = str(current_user.id)
-        endpoint = request.url.path
-        key = f"ratelimit:{user_id}:{endpoint}"
+        try:
+            user_id = str(current_user.id)
+            endpoint = request.url.path
+            key = f"ratelimit:{user_id}:{endpoint}"
 
-        now = time.time()
-        # Sliding window using ZSET
-        async with self.redis.pipeline(transaction=True) as pipe:
-            pipe.zremrangebyscore(key, 0, now - self.period)
-            pipe.zcard(key)
-            pipe.zadd(key, {str(now): now})
-            pipe.expire(key, self.period)
-            res = await pipe.execute()
+            now = time.time()
+            # Sliding window using ZSET
+            async with self.redis.pipeline(transaction=True) as pipe:
+                pipe.zremrangebyscore(key, 0, now - self.period)
+                pipe.zcard(key)
+                pipe.zadd(key, {str(now): now})
+                pipe.expire(key, self.period)
+                res = await pipe.execute()
 
-        request_count = res[1]
+            request_count = res[1]
 
-        if request_count >= self.max_calls:
-            # Calculate wait time
-            first_request_time_list = await self.redis.zrange(
-                key, 0, 0, withscores=True
-            )
-            if first_request_time_list:
-                retry_after = int(self.period - (now - first_request_time_list[0][1]))
-            else:
-                retry_after = self.period
+            if request_count >= self.max_calls:
+                # Calculate wait time
+                first_request_time_list = await self.redis.zrange(
+                    key, 0, 0, withscores=True
+                )
+                if first_request_time_list:
+                    retry_after = int(self.period - (now - first_request_time_list[0][1]))
+                else:
+                    retry_after = self.period
 
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Rate limit exceeded",
-                headers={
-                    "Retry-After": str(retry_after),
-                    "X-RateLimit-Limit": str(self.max_calls),
-                    "X-RateLimit-Remaining": "0",
-                },
-            )
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Rate limit exceeded",
+                    headers={
+                        "Retry-After": str(retry_after),
+                        "X-RateLimit-Limit": str(self.max_calls),
+                        "X-RateLimit-Remaining": "0",
+                    },
+                )
 
-        request.state.ratelimit_limit = self.max_calls
-        request.state.ratelimit_remaining = self.max_calls - request_count - 1
-        return True
+            request.state.ratelimit_limit = self.max_calls
+            request.state.ratelimit_remaining = self.max_calls - request_count - 1
+            return True
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.warning(f"RateLimiter redis error, fail-open: {e}")
+            return True
 
 
 class AuthRateLimiter:
@@ -108,26 +118,36 @@ class AuthRateLimiter:
     def __init__(self, max_calls: int, period: int):
         self.max_calls = max_calls
         self.period = period
-        self.redis = redis.from_url(str(settings.REDIS_URL), decode_responses=True)
+        try:
+            self.redis = redis.from_url(str(settings.REDIS_URL), decode_responses=True, socket_connect_timeout=2, socket_timeout=2)
+        except Exception as e:
+            logger.warning(f"AuthRateLimiter redis init failed, rate limiting disabled: {e}")
+            self.redis = None
 
     async def __call__(self, request: Request):
-        if settings.DEBUG:
+        if settings.DEBUG or self.redis is None:
             return True
-        ip = request.client.host
-        endpoint = request.url.path
-        key = f"authlimit:{ip}:{endpoint}"
+        try:
+            ip = request.client.host if request.client else "unknown"
+            endpoint = request.url.path
+            key = f"authlimit:{ip}:{endpoint}"
 
-        now = time.time()
-        async with self.redis.pipeline(transaction=True) as pipe:
-            pipe.zremrangebyscore(key, 0, now - self.period)
-            pipe.zcard(key)
-            pipe.zadd(key, {str(now): now})
-            pipe.expire(key, self.period)
-            res = await pipe.execute()
+            now = time.time()
+            async with self.redis.pipeline(transaction=True) as pipe:
+                pipe.zremrangebyscore(key, 0, now - self.period)
+                pipe.zcard(key)
+                pipe.zadd(key, {str(now): now})
+                pipe.expire(key, self.period)
+                res = await pipe.execute()
 
-        if res[1] >= self.max_calls:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Too many attempts. Please try again later.",
-            )
-        return True
+            if res[1] >= self.max_calls:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too many attempts. Please try again later.",
+                )
+            return True
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.warning(f"AuthRateLimiter redis error, fail-open: {e}")
+            return True
