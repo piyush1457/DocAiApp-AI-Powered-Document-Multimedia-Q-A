@@ -25,12 +25,23 @@ elif _db_url.startswith("postgresql://"):
 elif _db_url.startswith("postgresql+psycopg2://"):
     _db_url = _db_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
 
-# Remove channel_binding from query string — asyncpg throws TypeError: unexpected keyword argument
+# Remove params asyncpg 0.28 doesn't support — channel_binding and sslmode
+# asyncpg expects `ssl` not `sslmode`; Neon injects both
 try:
     _parsed = urlparse(_db_url)
     if _parsed.query:
         _qs = parse_qsl(_parsed.query, keep_blank_values=True)
-        _filtered = [(k, v) for k, v in _qs if k != "channel_binding"]
+        _filtered = []
+        _has_ssl = any(k == "ssl" for k, _ in _qs)
+        for k, v in _qs:
+            if k == "channel_binding":
+                continue
+            if k == "sslmode":
+                # Convert sslmode=require/verify-full -> ssl=true
+                if not _has_ssl:
+                    _filtered.append(("ssl", "require" if v in ("require", "verify-full", "verify-ca") else v))
+                continue
+            _filtered.append((k, v))
         if len(_filtered) != len(_qs):
             _db_url = urlunparse(_parsed._replace(query=urlencode(_filtered)))
 except Exception:
