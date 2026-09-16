@@ -3,6 +3,7 @@ Configuration module for the DocAiApp backend.
 Uses Pydantic BaseSettings to load environment variables and provide type-safe access.
 """
 
+import json
 from typing import List
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -53,19 +54,29 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = Field("/tmp/uploads", description="Directory for file uploads")
 
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = Field(
-        ["http://localhost:3000"],
-        description="List of origins allowed to make CORS requests",
+    # Use str to avoid Pydantic JSON decoding error on Vercel when env is plain comma-separated string
+    BACKEND_CORS_ORIGINS: str = Field(
+        "http://localhost:3000",
+        description="Comma-separated list of origins allowed to make CORS requests",
     )
 
-    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
-    @classmethod
-    def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
+    @property
+    def cors_origins(self) -> List[str]:
+        v = self.BACKEND_CORS_ORIGINS
+        if isinstance(v, list):
             return v
-        raise ValueError(v)
+        v = v.strip()
+        if not v:
+            return []
+        # Handle JSON array string e.g. '["https://a","https://b"]'
+        if v.startswith("["):
+            try:
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return [str(i).strip() for i in parsed]
+            except Exception:
+                pass
+        return [i.strip() for i in v.split(",") if i.strip()]
 
 
 settings = Settings()
