@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class LLMService:
     def __init__(self):
         self.client = Groq(api_key=settings.GROQ_API_KEY)
-        self.model_id = "llama-3.3-70b-versatile"
+        self.model_id = "llama-3.1-70b-versatile"
 
     async def get_chat_response_stream(
         self, messages: List[Dict[str, str]], context_chunks: List[Dict[str, Any]]
