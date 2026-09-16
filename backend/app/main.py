@@ -17,20 +17,11 @@ app = FastAPI(
 )
 
 # Set all CORS enabled origins
+# On Vercel frontend+backend share same domain via rewrites, but keep local origins for dev
+# Configure via BACKEND_CORS_ORIGINS env var (comma-separated) in production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-        "http://localhost:3002",
-        "http://127.0.0.1:3002",
-        "http://localhost:3003",
-        "http://127.0.0.1:3003",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-    ],
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

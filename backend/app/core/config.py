@@ -46,10 +46,11 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = Field("dummy_groq_key", description="Groq API key")
 
     # Storage
+    # On Vercel serverless filesystem only /tmp is writable - override via env
     FAISS_INDEX_PATH: str = Field(
-        "/app/faiss_index", description="Path to store FAISS index"
+        "/tmp/faiss_index", description="Path to store FAISS index"
     )
-    UPLOAD_DIR: str = Field("/app/uploads", description="Directory for file uploads")
+    UPLOAD_DIR: str = Field("/tmp/uploads", description="Directory for file uploads")
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = Field(
