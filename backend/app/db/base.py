@@ -14,6 +14,9 @@ from app.core.config import settings
 
 # Engine setup
 # Normalize DATABASE_URL to async driver — Vercel env often provides postgresql:// (psycopg2 default) but we use asyncpg
+# Also strip Neon/Supabase channel_binding param which asyncpg 0.28 doesn't support
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
 _db_url = settings.DATABASE_URL
 if _db_url.startswith("postgres://"):
     _db_url = _db_url.replace("postgres://", "postgresql+asyncpg://", 1)
@@ -21,6 +24,17 @@ elif _db_url.startswith("postgresql://"):
     _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 elif _db_url.startswith("postgresql+psycopg2://"):
     _db_url = _db_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
+
+# Remove channel_binding from query string — asyncpg throws TypeError: unexpected keyword argument
+try:
+    _parsed = urlparse(_db_url)
+    if _parsed.query:
+        _qs = parse_qsl(_parsed.query, keep_blank_values=True)
+        _filtered = [(k, v) for k, v in _qs if k != "channel_binding"]
+        if len(_filtered) != len(_qs):
+            _db_url = urlunparse(_parsed._replace(query=urlencode(_filtered)))
+except Exception:
+    pass
 
 engine = create_async_engine(_db_url, echo=settings.DEBUG, future=True)
 
