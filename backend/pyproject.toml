@@ -37,6 +37,10 @@ include = ["app*"]
 line-length = 88
 target-version = "py311"
 
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501"]
+
 [tool.black]
 line-length = 88
 target-version = ['py311']
@@ -50,8 +54,9 @@ addopts = "--cov=app --cov-report=term-missing --cov-report=html:coverage_html -
 
 
 [tool.coverage.run]
-source = ["app"]
-omit = ["tests/*", "alembic/*", "app/main.py"]
+branch = true
+relative_files = true
+omit = ["tests/*", "alembic/*", "*/main.py", "*/tests/*", "*/alembic/*"]
 
 [tool.coverage.report]
 exclude_lines = [

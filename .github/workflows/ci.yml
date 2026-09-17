@@ -85,9 +85,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd backend
-          uv pip install --system . pytest-cov pytest-mock pytest-asyncio aiosqlite httpx openai
-
-
+          uv pip install --system -e . pytest-cov pytest-mock pytest-asyncio aiosqlite httpx openai
 
       - name: Run Pytest with Coverage
         env:
