@@ -34,11 +34,21 @@ class IngestionService:
             file.status = FileStatus.PROCESSING
             await self.db.commit()
 
+            # On Vercel, storage_path may be a blob URL - ensure local file exists
+            from app.services.storage_service import storage_service as _storage
+
+            local_path = file.storage_path
+            try:
+                local_path = _storage.ensure_local(file.storage_path)
+            except FileNotFoundError as e:
+                # Re-raise as ingestion error with clear message
+                raise IngestionError(str(e))
+
             chunks_to_create = []
 
             if file.file_type == FileType.PDF:
                 # PDF Parsing
-                pages = parse_pdf(file.storage_path)
+                pages = parse_pdf(local_path)
                 for page in pages:
                     page_chunks = self.chunker.create_chunks(
                         text=page["text"], metadata={"page_number": page["page_number"]}
@@ -54,7 +64,7 @@ class IngestionService:
             ]:
                 # Transcription
                 segments = await self.transcription_service.transcribe_file(
-                    file_path=file.storage_path, file_id=file_id, db=self.db
+                    file_path=local_path, file_id=file_id, db=self.db
                 )
                 # Chunk segments
                 for seg in segments:

@@ -5,7 +5,7 @@ Uses Pydantic BaseSettings to load environment variables and provide type-safe a
 
 import json
 from typing import List
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -52,6 +52,10 @@ class Settings(BaseSettings):
         "/tmp/faiss_index", description="Path to store FAISS index"
     )
     UPLOAD_DIR: str = Field("/tmp/uploads", description="Directory for file uploads")
+    # Vercel Blob (persistent storage) - set BLOB_READ_WRITE_TOKEN in Vercel dashboard
+    BLOB_READ_WRITE_TOKEN: str = Field(
+        "", description="Vercel Blob RW token (auto-injected when Blob store is added)"
+    )
 
     # CORS
     # Use str to avoid Pydantic JSON decoding error on Vercel when env is plain comma-separated string
@@ -77,6 +81,16 @@ class Settings(BaseSettings):
             except Exception:
                 pass
         return [i.strip() for i in v.split(",") if i.strip()]
+
+    @property
+    def is_blob_enabled(self) -> bool:
+        return bool(self.BLOB_READ_WRITE_TOKEN and self.BLOB_READ_WRITE_TOKEN.strip())
+
+    @property
+    def is_vercel(self) -> bool:
+        import os
+
+        return bool(os.getenv("VERCEL"))
 
 
 settings = Settings()

@@ -84,9 +84,12 @@ async def get_file_content(
 ):
     """
     Returns the file content for viewing/streaming.
+    On Vercel: if storage_path is a Blob URL, redirect to it (survives cold starts).
+    If local file is missing on ephemeral disk, return 410 with actionable message.
     """
-    from fastapi.responses import FileResponse
+    from fastapi.responses import FileResponse, RedirectResponse
     import os
+    import mimetypes
 
     result = await db.execute(
         select(File).where((File.id == file_id) & (File.user_id == current_user.id))
@@ -95,11 +98,52 @@ async def get_file_content(
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
 
-    if not os.path.exists(file.storage_path):
+    # Blob URL -> redirect (public URL, no need to proxy through serverless)
+    if file.storage_path.startswith("http://") or file.storage_path.startswith(
+        "https://"
+    ):
+        # Use 307 to preserve auth not needed; browser/axios will follow automatically
+        return RedirectResponse(url=file.storage_path, status_code=307)
+
+    # Try local file, with support for blob cache re-download via storage_service
+    try:
+        from app.services.storage_service import storage_service as _storage
+
+        # If local missing but blob token configured, this will attempt download
+        # (in case DB still has local path from before blob was enabled)
+        local_path = _storage.ensure_local(file.storage_path)
+        # If ensure_local downloaded a blob, use that path
+        storage_path = local_path
+    except FileNotFoundError as e:
+        from app.core.config import settings as _settings
+
+        if _settings.is_blob_enabled:
+            raise HTTPException(
+                status_code=410,
+                detail="File expired from ephemeral storage and could not be restored from Blob. Please re-upload.",
+            )
+        if _settings.is_vercel:
+            raise HTTPException(
+                status_code=410,
+                detail="File not found on Vercel ephemeral disk (/tmp). "
+                "Files do not persist across serverless restarts. "
+                "Add BLOB_READ_WRITE_TOKEN (Vercel Blob) in Vercel dashboard -> Storage -> Create Blob Store -> connect to project, then re-upload. See deploy.md.",
+            )
+        raise HTTPException(status_code=404, detail=str(e))
+
+    if not os.path.exists(storage_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
 
+    # Determine media type for video/audio (FileResponse will guess if None, but be explicit)
+    media_type = None
+    if file.file_type == FileType.PDF:
+        media_type = "application/pdf"
+    else:
+        guessed, _ = mimetypes.guess_type(file.original_filename)
+        media_type = guessed
+
     return FileResponse(
-        file.storage_path,
+        storage_path,
         filename=file.original_filename,
-        media_type="application/pdf" if file.file_type == FileType.PDF else None,
+        media_type=media_type,
     )

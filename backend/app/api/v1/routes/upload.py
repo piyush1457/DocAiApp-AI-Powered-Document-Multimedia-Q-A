@@ -68,17 +68,17 @@ async def upload_file(
             "details": {"max_size": MAX_FILE_SIZE, "actual_size": file_size},
         }
 
-    # 3. Save file
+    # 3. Save file locally first (needed for ingestion even when Blob is enabled)
     upload_id = uuid.uuid4()
     storage_dir = f"/tmp/uploads/{current_user.id}"
     os.makedirs(storage_dir, exist_ok=True)
 
     # Use lowercase extension for compatibility with external APIs like Groq
     storage_filename = f"{upload_id}.{ext.lower()}"
-    storage_path = os.path.join(storage_dir, storage_filename)
+    local_storage_path = os.path.join(storage_dir, storage_filename)
 
     try:
-        with open(storage_path, "wb") as buffer:
+        with open(local_storage_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
     except Exception as e:
         return {
@@ -86,6 +86,31 @@ async def upload_file(
             "code": "STORAGE_ERROR",
             "details": {"message": str(e)},
         }
+
+    # 3b. Persist to Vercel Blob if configured (survives cold starts)
+    storage_path = local_storage_path
+    try:
+        from app.core.config import settings as _settings
+        from app.services.storage_service import storage_service as _storage
+
+        if _settings.is_blob_enabled:
+            blob_url = await _storage.upload_to_blob(
+                local_storage_path, storage_filename, file.content_type
+            )
+            if blob_url:
+                storage_path = blob_url
+            else:
+                # Blob configured but upload failed - keep local path but warn
+                import logging
+
+                logging.getLogger(__name__).warning(
+                    "Blob upload failed, falling back to ephemeral /tmp"
+                )
+    except Exception as e:
+        import logging
+
+        logging.getLogger(__name__).warning(f"Blob upload exception: {e}")
+        storage_path = local_storage_path
 
     # 4. Create DB entry
     db_file = File(

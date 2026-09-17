@@ -37,25 +37,69 @@ export const ChatView = () => {
   };
 
   const [mediaUrl, setMediaUrl] = useState<string>('');
+  const [mediaError, setMediaError] = useState<string | null>(null);
+  const [mediaLoading, setMediaLoading] = useState<boolean>(false);
 
   useEffect(() => {
     let currentUrl = '';
+    let cancelled = false;
     const fetchMedia = async () => {
       if (!file) return;
+      setMediaLoading(true);
+      setMediaError(null);
       try {
         const response = await api.get(`/files/${file.id}/content`, {
           responseType: 'blob'
         });
+        if (cancelled) return;
+        // Backend may return JSON error with blob type on failure; check
+        const contentType = response.headers['content-type'] || '';
+        if (contentType.includes('application/json')) {
+          const text = await (response.data as Blob).text();
+          try {
+            const json = JSON.parse(text);
+            throw { response: { status: response.status, data: json } };
+          } catch {
+            // ignore
+          }
+        }
         currentUrl = URL.createObjectURL(response.data);
         setMediaUrl(currentUrl);
-      } catch (err) {
+      } catch (err: any) {
+        if (cancelled) return;
+        const status = err?.response?.status;
+        const detail = err?.response?.data
+          ? (err.response.data instanceof Blob
+              ? await err.response.data.text().then((t: string) => {
+                  try {
+                    return JSON.parse(t).detail || t;
+                  } catch {
+                    return t;
+                  }
+                }).catch(() => '')
+              : err.response.data.detail || err.response.data.message || '')
+          : err.message || '';
         console.error('Failed to fetch media content', err);
+        if (status === 410) {
+          setMediaError(
+            detail || 'File expired from serverless ephemeral storage. Please re-upload the file.'
+          );
+        } else if (status === 404) {
+          setMediaError(
+            detail || 'Media not found. It may have expired on the serverless filesystem. Re-upload or enable Vercel Blob (BLOB_READ_WRITE_TOKEN).'
+          );
+        } else {
+          setMediaError(detail || 'Failed to load media content.');
+        }
+      } finally {
+        if (!cancelled) setMediaLoading(false);
       }
     };
 
     fetchMedia();
 
     return () => {
+      cancelled = true;
       if (currentUrl) URL.revokeObjectURL(currentUrl);
     };
   }, [file]);
@@ -110,7 +154,23 @@ export const ChatView = () => {
       <ChatLayout
         leftContent={
           <div className="h-full flex flex-col p-4 lg:p-6">
-            {mediaUrl ? (
+            {mediaError ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-panel rounded-lg border border-border">
+                <div className="p-3 bg-red-400/10 rounded-full mb-3">
+                  <Info className="w-6 h-6 text-red-400" />
+                </div>
+                <h3 className="text-textPrimary font-medium mb-1">Media unavailable</h3>
+                <p className="text-textSecondary text-xs max-w-sm mb-4">{mediaError}</p>
+                <Link to="/">
+                  <Button variant="outline" size="sm">Back to Library & re-upload</Button>
+                </Link>
+                {mediaError.includes('BLOB_READ_WRITE_TOKEN') && (
+                  <p className="text-[10px] text-textSecondary mt-3 max-w-sm">
+                    Add a Vercel Blob store: Vercel Dashboard → Storage → Create Blob Store → Connect to project → redeploy.
+                  </p>
+                )}
+              </div>
+            ) : mediaUrl ? (
               <MediaPlayer 
                 ref={playerRef}
                 src={mediaUrl} 
