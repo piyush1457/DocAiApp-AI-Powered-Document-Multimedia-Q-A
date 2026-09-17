@@ -56,10 +56,15 @@ class Settings(BaseSettings):
         "/tmp/faiss_index", description="Path to store FAISS index"
     )
     UPLOAD_DIR: str = Field("/tmp/uploads", description="Directory for file uploads")
-    # Vercel Blob (persistent storage) - set BLOB_READ_WRITE_TOKEN in Vercel dashboard
+    # Vercel Blob (persistent storage) - Vercel may inject as BLOB_READ_WRITE_TOKEN or VERCEL_BLOB_READ_WRITE_TOKEN
     BLOB_READ_WRITE_TOKEN: str = Field(
         "", description="Vercel Blob RW token (auto-injected when Blob store is added)"
     )
+    VERCEL_BLOB_READ_WRITE_TOKEN: str = Field(
+        "", description="Alternative Vercel Blob RW token name"
+    )
+    BLOB_TOKEN: str = Field("", description="Alternative Blob token name")
+    BLOB_STORE_ID: str = Field("", description="Vercel Blob Store ID")
 
     # CORS
     # Use str to avoid Pydantic JSON decoding error on Vercel when env is plain comma-separated string
@@ -87,8 +92,31 @@ class Settings(BaseSettings):
         return [i.strip() for i in v.split(",") if i.strip()]
 
     @property
+    def blob_token(self) -> str:
+        # Check multiple possible env names Vercel may use
+        import os
+
+        for key in [
+            "BLOB_READ_WRITE_TOKEN",
+            "VERCEL_BLOB_READ_WRITE_TOKEN",
+            "BLOB_TOKEN",
+        ]:
+            val = os.getenv(key)
+            if val and val.strip():
+                return val.strip()
+        # Fallback to pydantic fields
+        for val in [
+            self.BLOB_READ_WRITE_TOKEN,
+            self.VERCEL_BLOB_READ_WRITE_TOKEN,
+            self.BLOB_TOKEN,
+        ]:
+            if val and val.strip():
+                return val.strip()
+        return ""
+
+    @property
     def is_blob_enabled(self) -> bool:
-        return bool(self.BLOB_READ_WRITE_TOKEN and self.BLOB_READ_WRITE_TOKEN.strip())
+        return bool(self.blob_token)
 
     @property
     def is_vercel(self) -> bool:

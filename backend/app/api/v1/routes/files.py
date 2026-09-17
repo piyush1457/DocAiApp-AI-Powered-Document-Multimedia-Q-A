@@ -117,6 +117,10 @@ async def get_file_content(
     except FileNotFoundError as e:
         from app.core.config import settings as _settings
 
+        msg = str(e)
+        # Propagate specific Blob token guidance from storage_service
+        if "BLOB_STORE_ID" in msg or "BLOB_READ_WRITE_TOKEN" in msg:
+            raise HTTPException(status_code=410, detail=msg)
         if _settings.is_blob_enabled:
             raise HTTPException(
                 status_code=410,
@@ -127,9 +131,9 @@ async def get_file_content(
                 status_code=410,
                 detail="File not found on Vercel ephemeral disk (/tmp). "
                 "Files do not persist across serverless restarts. "
-                "Add BLOB_READ_WRITE_TOKEN (Vercel Blob) in Vercel dashboard -> Storage -> Create Blob Store -> connect to project, then re-upload. See deploy.md.",
+                "Add BLOB_READ_WRITE_TOKEN or VERCEL_BLOB_READ_WRITE_TOKEN in Vercel dashboard -> Storage -> Blob Store -> .env.local -> copy token to Project Settings -> Environment Variables, then Redeploy (uncheck Build Cache) and re-upload.",
             )
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=msg)
 
     if not os.path.exists(storage_path):
         raise HTTPException(status_code=404, detail="File not found on disk")

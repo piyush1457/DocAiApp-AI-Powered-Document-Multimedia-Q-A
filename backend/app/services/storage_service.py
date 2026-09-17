@@ -36,9 +36,13 @@ class StorageService:
         Returns blob URL on success, None on failure.
         """
         if not settings.is_blob_enabled:
+            logger.info(
+                "Blob upload skipped: no token found. Checked BLOB_READ_WRITE_TOKEN, VERCEL_BLOB_READ_WRITE_TOKEN, BLOB_TOKEN. "
+                f"BLOB_STORE_ID={'set' if settings.BLOB_STORE_ID else 'not set'} -> add token from Vercel Dashboard > Storage > Blob Store > .env.local > BLOB_READ_WRITE_TOKEN to Project Settings > Environment Variables"
+            )
             return None
 
-        token = settings.BLOB_READ_WRITE_TOKEN.strip()
+        token = settings.blob_token.strip()
         # Vercel Blob REST API: PUT https://blob.vercel-storage.com/<pathname>
         # Docs: https://vercel.com/docs/storage/vercel-blob/using-blob-sdk
         # For raw REST, the hostname is blob.vercel-storage.com
@@ -122,10 +126,16 @@ class StorageService:
         # Missing local file - on Vercel this is expected after cold start
         if settings.is_vercel or settings.is_blob_enabled:
             # Provide actionable error
+            if settings.BLOB_STORE_ID and not settings.is_blob_enabled:
+                raise FileNotFoundError(
+                    "File not found on ephemeral disk. Blob Store exists (BLOB_STORE_ID set) but BLOB_READ_WRITE_TOKEN missing. "
+                    "Copy token from Vercel Dashboard > Storage > your Blob Store > .env.local (BLOB_READ_WRITE_TOKEN) "
+                    "and add it to Project Settings > Environment Variables (Production & Preview), then Redeploy (uncheck Build Cache)."
+                )
             raise FileNotFoundError(
                 "File not found on ephemeral disk. "
                 "On Vercel, files in /tmp do not persist across deployments/restarts. "
-                "Re-upload the file or configure BLOB_READ_WRITE_TOKEN for persistent storage."
+                "Re-upload the file or configure BLOB_READ_WRITE_TOKEN / VERCEL_BLOB_READ_WRITE_TOKEN for persistent storage."
             )
         # Local dev/test: return path as-is so mocked parsers can run (file may not exist on disk in tests)
         # Caller (parse_pdf / transcription) will raise if it truly needs the file
@@ -137,8 +147,13 @@ class StorageService:
             if os.path.exists(storage_path):
                 return storage_path
             if settings.is_vercel or settings.is_blob_enabled:
+                if settings.BLOB_STORE_ID and not settings.is_blob_enabled:
+                    raise FileNotFoundError(
+                        "File not found on ephemeral disk. Blob Store exists but BLOB_READ_WRITE_TOKEN missing. "
+                        "Add token from Storage > Blob Store > .env.local to Environment Variables."
+                    )
                 raise FileNotFoundError(
-                    "File not found on ephemeral disk. Configure BLOB_READ_WRITE_TOKEN."
+                    "File not found on ephemeral disk. Configure BLOB_READ_WRITE_TOKEN / VERCEL_BLOB_READ_WRITE_TOKEN."
                 )
             return storage_path
 
