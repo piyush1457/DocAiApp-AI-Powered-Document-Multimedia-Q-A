@@ -53,7 +53,7 @@ export const ChatView = () => {
         });
         if (cancelled) return;
         // Backend may return JSON error with blob type on failure; check
-        const contentType = response.headers['content-type'] || '';
+        const contentType = String(response.headers['content-type'] ?? response.headers['Content-Type'] ?? '');
         if (contentType.includes('application/json')) {
           const text = await (response.data as Blob).text();
           try {
