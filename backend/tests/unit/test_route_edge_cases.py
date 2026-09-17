@@ -16,7 +16,7 @@ async def test_upload_route_success(client, auth_headers):
         ),
     ):
         response = await client.post(
-            "/docaiapp/v1/upload/upload",
+            "/api/v1/upload",
             headers=auth_headers,
             files={"file": ("test.pdf", b"%PDF-1.4...", "application/pdf")},
         )
@@ -28,7 +28,7 @@ async def test_upload_route_success(client, auth_headers):
 async def test_upload_route_invalid_type(client, auth_headers):
     """Test upload route with invalid MIME type returns error body."""
     response = await client.post(
-        "/docaiapp/v1/upload/upload",
+        "/api/v1/upload",
         headers=auth_headers,
         files={"file": ("test.txt", b"txt content", "text/plain")},
     )
@@ -42,7 +42,7 @@ async def test_upload_route_invalid_type(client, auth_headers):
 async def test_chat_route_no_file(client, auth_headers):
     """Test chat route when file is not found returns 404."""
     response = await client.post(
-        "/docaiapp/v1/chat/",
+        "/api/v1/chat/",
         headers=auth_headers,
         json={"file_id": str(uuid.uuid4()), "question": "test", "history": []},
     )

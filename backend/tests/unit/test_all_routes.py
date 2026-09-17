@@ -13,7 +13,7 @@ async def test_auth_routes_coverage(client):
         patch("app.api.v1.routes.auth.hash_refresh_token", return_value="hash"),
     ):
         r = await client.post(
-            "/docaiapp/v1/auth/register",
+            "/api/v1/auth/register",
             json={
                 "email": f"{uuid.uuid4()}@ex.com",
                 "password": "Password123!",
@@ -25,7 +25,7 @@ async def test_auth_routes_coverage(client):
 @pytest.mark.asyncio
 async def test_file_routes_coverage(client, auth_headers):
     """Call file listing route."""
-    r = await client.get("/docaiapp/v1/files/", headers=auth_headers)
+    r = await client.get("/api/v1/files/", headers=auth_headers)
     assert r.status_code == 200
 
 
@@ -59,7 +59,7 @@ async def test_chat_routes_coverage(client, auth_headers, test_user, db_session)
         ),
     ):
         r = await client.post(
-            "/docaiapp/v1/chat/",
+            "/api/v1/chat/",
             json={"file_id": str(file_id), "question": "hi", "history": []},
             headers=auth_headers,
         )
@@ -105,5 +105,5 @@ async def test_summary_routes_coverage(client, auth_headers, test_user, db_sessi
     ):
         mock_redis.get = AsyncMock(return_value=None)
         mock_redis.setex = AsyncMock()
-        r = await client.get(f"/docaiapp/v1/summary/{file_id}", headers=auth_headers)
+        r = await client.get(f"/api/v1/summary/{file_id}", headers=auth_headers)
         assert r.status_code in [200, 404, 500]

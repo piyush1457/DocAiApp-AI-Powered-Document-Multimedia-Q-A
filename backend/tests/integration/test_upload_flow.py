@@ -15,7 +15,7 @@ async def test_full_upload_flow_success(
         new_callable=AsyncMock,
     ):
         response = await client.post(
-            "/docaiapp/v1/upload/upload", files=files, headers=auth_headers
+            "/api/v1/upload", files=files, headers=auth_headers
         )
 
     assert response.status_code == 202
@@ -29,7 +29,7 @@ async def test_upload_invalid_mime_type(client, auth_headers):
     """Test that uploading an unsupported file type returns error in body."""
     files = {"file": ("test.txt", b"some text", "text/plain")}
     response = await client.post(
-        "/docaiapp/v1/upload/upload", files=files, headers=auth_headers
+        "/api/v1/upload", files=files, headers=auth_headers
     )
     body = response.json()
     assert "error" in body
@@ -44,7 +44,7 @@ async def test_upload_oversized_file(client, auth_headers):
 
     with patch("app.api.v1.routes.upload.MAX_FILE_SIZE", 512):
         response = await client.post(
-            "/docaiapp/v1/upload/upload", files=files, headers=auth_headers
+            "/api/v1/upload", files=files, headers=auth_headers
         )
         assert response.json()["code"] == "FILE_TOO_LARGE"
 
@@ -59,7 +59,7 @@ async def test_upload_status_polling(client, auth_headers, sample_pdf_bytes, db_
         new_callable=AsyncMock,
     ):
         response = await client.post(
-            "/docaiapp/v1/upload/upload", files=files, headers=auth_headers
+            "/api/v1/upload", files=files, headers=auth_headers
         )
 
     assert response.status_code == 202
@@ -67,7 +67,7 @@ async def test_upload_status_polling(client, auth_headers, sample_pdf_bytes, db_
 
     # Poll status
     status_resp = await client.get(
-        f"/docaiapp/v1/upload/{file_id}/status", headers=auth_headers
+        f"/api/v1/upload/{file_id}/status", headers=auth_headers
     )
     assert status_resp.status_code == 200
     assert status_resp.json()["status"] in ["uploading", "processing", "ready"]

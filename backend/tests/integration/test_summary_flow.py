@@ -60,7 +60,7 @@ async def test_summary_caching_flow(client, auth_headers, db_session, test_user)
     ):
         # 1. First request -> Calls LLM
         response = await client.get(
-            f"/docaiapp/v1/summary/{file_id}", headers=auth_headers
+            f"/api/v1/summary/{file_id}", headers=auth_headers
         )
         assert response.status_code == 200
         assert response.json()["summary"] == "Generated summary"
@@ -68,7 +68,7 @@ async def test_summary_caching_flow(client, auth_headers, db_session, test_user)
 
         # 2. Second request -> Served from Redis cache
         response = await client.get(
-            f"/docaiapp/v1/summary/{file_id}", headers=auth_headers
+            f"/api/v1/summary/{file_id}", headers=auth_headers
         )
         assert response.status_code == 200
         assert mock_sum.call_count == 1  # Still 1

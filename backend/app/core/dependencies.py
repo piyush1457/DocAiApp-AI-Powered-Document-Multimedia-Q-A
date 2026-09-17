@@ -56,9 +56,16 @@ class RateLimiter:
         self.max_calls = max_calls
         self.period = period
         try:
-            self.redis = redis.from_url(str(settings.REDIS_URL), decode_responses=True, socket_connect_timeout=2, socket_timeout=2)
+            self.redis = redis.from_url(
+                str(settings.REDIS_URL),
+                decode_responses=True,
+                socket_connect_timeout=2,
+                socket_timeout=2,
+            )
         except Exception as e:
-            logger.warning(f"RateLimiter redis init failed, rate limiting disabled: {e}")
+            logger.warning(
+                f"RateLimiter redis init failed, rate limiting disabled: {e}"
+            )
             self.redis = None
 
     async def __call__(
@@ -88,7 +95,9 @@ class RateLimiter:
                     key, 0, 0, withscores=True
                 )
                 if first_request_time_list:
-                    retry_after = int(self.period - (now - first_request_time_list[0][1]))
+                    retry_after = int(
+                        self.period - (now - first_request_time_list[0][1])
+                    )
                 else:
                     retry_after = self.period
 
@@ -119,9 +128,16 @@ class AuthRateLimiter:
         self.max_calls = max_calls
         self.period = period
         try:
-            self.redis = redis.from_url(str(settings.REDIS_URL), decode_responses=True, socket_connect_timeout=2, socket_timeout=2)
+            self.redis = redis.from_url(
+                str(settings.REDIS_URL),
+                decode_responses=True,
+                socket_connect_timeout=2,
+                socket_timeout=2,
+            )
         except Exception as e:
-            logger.warning(f"AuthRateLimiter redis init failed, rate limiting disabled: {e}")
+            logger.warning(
+                f"AuthRateLimiter redis init failed, rate limiting disabled: {e}"
+            )
             self.redis = None
 
     async def __call__(self, request: Request):

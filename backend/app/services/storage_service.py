@@ -72,7 +72,9 @@ class StorageService:
                 body = resp.json()
                 blob_url = body.get("url")
                 if blob_url:
-                    logger.info(f"Uploaded {filename} ({file_size} bytes) to Blob: {blob_url}")
+                    logger.info(
+                        f"Uploaded {filename} ({file_size} bytes) to Blob: {blob_url}"
+                    )
                     return blob_url
                 logger.warning(f"Blob upload no url in response: {body}")
                 return None
@@ -109,7 +111,9 @@ class StorageService:
                                 out.write(chunk)
                 return local_cached
             except Exception as e:
-                raise FileNotFoundError(f"Failed to download blob {storage_path}: {e}") from e
+                raise FileNotFoundError(
+                    f"Failed to download blob {storage_path}: {e}"
+                ) from e
 
         # Local path case
         if os.path.exists(storage_path):

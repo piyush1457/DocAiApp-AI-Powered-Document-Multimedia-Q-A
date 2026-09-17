@@ -11,7 +11,7 @@ async def test_full_auth_lifecycle(client):
 
     # 1. Register
     reg_resp = await client.post(
-        "/docaiapp/v1/auth/register", json={"email": email, "password": password}
+        "/api/v1/auth/register", json={"email": email, "password": password}
     )
     assert reg_resp.status_code == 200
     tokens = reg_resp.json()
@@ -21,7 +21,7 @@ async def test_full_auth_lifecycle(client):
 
     # 2. Access protected route (uses conftest override so always 200)
     headers = {"Authorization": f"Bearer {access_token}"}
-    prot_resp = await client.get("/docaiapp/v1/files/", headers=headers)
+    prot_resp = await client.get("/api/v1/files/", headers=headers)
     assert prot_resp.status_code == 200
 
 
@@ -33,7 +33,7 @@ async def test_refresh_token_rotation(client):
 
     # Register to get tokens
     reg_resp = await client.post(
-        "/docaiapp/v1/auth/register", json={"email": email, "password": password}
+        "/api/v1/auth/register", json={"email": email, "password": password}
     )
     assert reg_resp.status_code == 200
     tokens = reg_resp.json()
@@ -41,7 +41,7 @@ async def test_refresh_token_rotation(client):
 
     # First refresh should succeed
     resp1 = await client.post(
-        "/docaiapp/v1/auth/refresh", json={"refresh_token": old_refresh}
+        "/api/v1/auth/refresh", json={"refresh_token": old_refresh}
     )
     assert resp1.status_code == 200
     new_tokens = resp1.json()

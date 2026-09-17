@@ -39,7 +39,16 @@ try:
             if k == "sslmode":
                 # Convert sslmode=require/verify-full -> ssl=true
                 if not _has_ssl:
-                    _filtered.append(("ssl", "require" if v in ("require", "verify-full", "verify-ca") else v))
+                    _filtered.append(
+                        (
+                            "ssl",
+                            (
+                                "require"
+                                if v in ("require", "verify-full", "verify-ca")
+                                else v
+                            ),
+                        )
+                    )
                 continue
             _filtered.append((k, v))
         if len(_filtered) != len(_qs):

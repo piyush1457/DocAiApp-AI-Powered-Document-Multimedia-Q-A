@@ -38,7 +38,7 @@ async def test_chat_sse_stream_success(client, auth_headers, db_session, test_us
     ):
         payload = {"file_id": str(file_id), "question": "What is this?", "history": []}
         r = await client.post(
-            "/docaiapp/v1/chat/", json=payload, headers=auth_headers
+            "/api/v1/chat/", json=payload, headers=auth_headers
         )
         assert r.status_code == 200
 
@@ -52,6 +52,6 @@ async def test_chat_unauthenticated(client):
     app.dependency_overrides.pop(get_current_user, None)
 
     payload = {"file_id": str(uuid.uuid4()), "question": "Hi", "history": []}
-    response = await client.post("/docaiapp/v1/chat/", json=payload)
+    response = await client.post("/api/v1/chat/", json=payload)
 
     assert response.status_code == 401
